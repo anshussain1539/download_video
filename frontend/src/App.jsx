@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import './App.css'
 
+const API_BASE = (import.meta.env.VITE_API_BASE || '/api').replace(/\/$/, '')
+
 function parseFilename(disposition) {
   if (!disposition) return null
   const utf8 = disposition.match(/filename\*=UTF-8''([^;]+)/i)
@@ -23,7 +25,7 @@ export default function App() {
     setStatus('downloading')
     setError('')
     try {
-      const res = await fetch('/api/download', {
+      const res = await fetch(`${API_BASE}/download`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: trimmed }),
