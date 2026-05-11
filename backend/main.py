@@ -63,6 +63,11 @@ def download(req: DownloadRequest):
         "no_warnings": True,
         "noplaylist": True,
         "restrictfilenames": True,
+        # YouTube's web client often returns zero formats from cloud IPs.
+        # Mobile/TV clients see a different, more permissive format list.
+        "extractor_args": {
+            "youtube": {"player_client": ["tv_embedded", "ios", "android", "web"]},
+        },
     }
 
     if COOKIES_FILE:
