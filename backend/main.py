@@ -55,7 +55,10 @@ def download(req: DownloadRequest):
 
     ydl_opts = {
         "outtmpl": out_template,
-        "format": "best[ext=mp4]/best",
+        # Prefer mp4 video + m4a audio (merged via ffmpeg), then mp4 progressive,
+        # then any video+audio combo, then any single best stream.
+        "format": "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]/bv*+ba/b",
+        "merge_output_format": "mp4",
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
