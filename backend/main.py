@@ -23,15 +23,11 @@ app.add_middleware(
 DOWNLOAD_DIR = Path(tempfile.gettempdir()) / "video_downloader"
 DOWNLOAD_DIR.mkdir(exist_ok=True)
 
-# Optional: paste a Netscape-format cookies.txt blob into this env var on the
-# host (e.g., Render) so yt-dlp can bypass YouTube's "confirm you're not a bot"
-# check from datacenter IPs. See README for export instructions.
-_COOKIES_FILE: str | None = None
-_cookies_env = os.environ.get("YTDLP_COOKIES")
-if _cookies_env:
-    _cookie_path = DOWNLOAD_DIR / "cookies.txt"
-    _cookie_path.write_text(_cookies_env)
-    _COOKIES_FILE = str(_cookie_path)
+# If a cookies.txt is sitting next to main.py, hand it to yt-dlp.
+# Used to bypass YouTube/FB cloud-IP bot checks during deploy testing.
+# DO NOT commit real account cookies to a public repo.
+_cookies_path = Path(__file__).parent / "cookies.txt"
+COOKIES_FILE = str(_cookies_path) if _cookies_path.exists() else None
 
 
 class DownloadRequest(BaseModel):
@@ -64,13 +60,10 @@ def download(req: DownloadRequest):
         "no_warnings": True,
         "noplaylist": True,
         "restrictfilenames": True,
-        # Use mobile player clients first — sometimes bypasses YouTube's
-        # cloud-IP bot check without needing cookies. Falls back to web.
-        "extractor_args": {"youtube": {"player_client": ["ios", "android", "web"]}},
     }
 
-    if _COOKIES_FILE:
-        ydl_opts["cookiefile"] = _COOKIES_FILE
+    if COOKIES_FILE:
+        ydl_opts["cookiefile"] = COOKIES_FILE
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
